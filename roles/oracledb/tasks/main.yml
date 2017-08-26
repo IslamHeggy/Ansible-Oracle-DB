@@ -1,0 +1,47 @@
+---
+#tasks file for oracledb
+- block:
+  - name: Download Oracle database
+    get_url: url={{ oracle_url }} dest="/tmp/"
+
+  - name: Install Oracle database
+    zypper: name={{ oracle_dest }} state=present disable_gpg_check=yes
+
+
+  - name: Create Oracle Directory
+    file: path="/opt/oracle" state=directory owner='oracle'
+
+  - name: Create Configuration File
+    template: src='xe.rsp' dest='/opt/oracle/xe.rsp'
+
+  - name: Copy Modified Configuration Scripts
+    copy: src={{ item }} dest={{ modified_scripts }} mode="0774" owner="oracle" 
+    with_items: 
+      - init.ora
+      - initXETemp.ora
+       
+  - name: Configure Oracle Database
+    shell: /etc/init.d/oracle-xe configure responseFile=xe.rsp chdir=/opt/oracle
+    register: result
+    failed_when: ('Installation completed successfully' not in result.stdout) and ('already configured' not in result.stdout)  
+
+  - name: Insert Environment Variables in bash.bashrc
+    blockinfile: 
+      dest: "/etc/bash.bashrc" 
+      block: |
+         export ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
+         export ORACLE_SID=XE
+         export NLS_LANG=`$ORACLE_HOME/bin/nls_lang.sh`
+         export PATH=$ORACLE_HOME/bin:$PATH
+
+  - name: Run the Environment Vars Script
+    script: "{{ envscriptpath }}"
+
+  - name: Copy Sql Script
+    copy: src=script.sql dest=/u01/app/oracle/product/11.2.0/xe/config/scripts/ mode="0774" owner="oracle" 
+
+  - name: Add a User with Needed Privileges
+    shell: su - oracle -c 'sqlplus "{{ dbauth }}" @/u01/app/oracle/product/11.2.0/xe/config/scripts/script.sql' 
+
+  when: install_oracle is defined and install_oracle == 1
+  tags: [oracle]

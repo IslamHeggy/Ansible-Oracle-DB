@@ -1,0 +1,9 @@
+---
+
+
+- name: Databases host bootstrapping
+  hosts: databases
+  become: yes
+  roles:
+    - oracledb
+

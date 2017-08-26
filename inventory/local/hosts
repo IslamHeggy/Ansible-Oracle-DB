@@ -1,0 +1,4 @@
+[databases]
+localhost ansible_connection=local
+
+
