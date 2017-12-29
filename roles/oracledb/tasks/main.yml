@@ -9,16 +9,15 @@
 
 
   - name: Create Oracle Directory
-    file: path="/opt/oracle" state=directory owner='oracle'
+    file: path={{ oracle_dir }} state=directory owner='oracle'
 
   - name: Create Configuration File
-    template: src='xe.rsp' dest='/opt/oracle/xe.rsp'
+    template: src='xe.rsp' dest="{{ oracle_dir }}/xe.rsp"
 
   - name: Copy Modified Configuration Scripts
-    copy: src={{ item }} dest={{ modified_scripts }} mode="0774" owner="oracle" 
+    copy: src={{ item }} dest={{ modified_scripts_path }} mode="0774" owner="oracle" 
     with_items: 
-      - init.ora
-      - initXETemp.ora
+      - "{{ modified_scripts }}"
        
   - name: Configure Oracle Database
     shell: /etc/init.d/oracle-xe configure responseFile=xe.rsp chdir=/opt/oracle
@@ -38,7 +37,7 @@
     script: "{{ envscriptpath }}"
 
   - name: Copy Sql Script
-    copy: src=script.sql dest=/u01/app/oracle/product/11.2.0/xe/config/scripts/ mode="0774" owner="oracle" 
+    copy: src=script.sql dest={{ modified_scripts_path }} mode="0774" owner="oracle" 
 
   - name: Add a User with Needed Privileges
     shell: su - oracle -c 'sqlplus "{{ dbauth }}" @/u01/app/oracle/product/11.2.0/xe/config/scripts/script.sql' 

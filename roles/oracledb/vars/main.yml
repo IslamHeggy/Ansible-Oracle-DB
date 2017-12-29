@@ -4,4 +4,8 @@ envscriptpath: "/u01/app/oracle/product/11.2.0/xe/bin/oracle_env.sh"
 dbauth: "system/oracle123"
 oracle_url: "The database url"
 oracle_dest: "/tmp/oracle-xe-11.2.0-1.0.x86_64.rpm"
-modified_scripts: "/u01/app/oracle/product/11.2.0/xe/config/scripts/"
+modified_scripts_path: "/u01/app/oracle/product/11.2.0/xe/config/scripts/"
+modified_scripts:
+- init.ora
+- initXETemp.ora
+oracle_dir: "/opt/oracle"
